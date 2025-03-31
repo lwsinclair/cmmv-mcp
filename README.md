@@ -14,19 +14,19 @@
 
 ## Description
 
-O módulo `@cmmv/mcp` implementa o Model Context Protocol (MCP) para aplicações CMMV, permitindo interações padronizadas entre LLMs (Large Language Models) e a sua aplicação. O MCP proporciona uma interface estruturada para definir ferramentas (tools) que podem ser utilizadas por modelos de IA em um formato padronizado.
+The `@cmmv/mcp` module implements the Model Context Protocol (MCP) for CMMV applications, allowing standardized interactions between LLMs (Large Language Models) and your application. MCP provides a structured interface for defining tools usable by AI models in a standard format.
 
 ## Features
 
-- **Integração com LLMs**: Facilita a comunicação bidirecional entre sua aplicação e modelos de linguagem.
-- **Transporte Flexível**: Suporte para transporte via Server-Sent Events (SSE) ou Standard I/O.
-- **API Decorator-Based**: Decorators intuitivos como `@MCPTool` para registrar ferramentas.
-- **Validação com Zod**: Validação de schemas para parâmetros de entrada usando Zod.
-- **Gerenciamento de Conexões**: Implementação robusta para múltiplas conexões simultâneas.
+- **LLM Integration**: Facilitates bidirectional communication between your application and language models.
+- **Flexible Transport**: Supports transport via Server-Sent Events (SSE) or Standard I/O.
+- **API Decorator-Based**: Intuitive decorators like `@MCPTool` to register tools.
+- **Validation with Zod**: Input schema validation using Zod.
+- **Connection Management**: Robust implementation for handling multiple concurrent connections.
 
 ## Installation
 
-Instale o pacote `@cmmv/mcp` via pnpm:
+Install `@cmmv/mcp` via pnpm:
 
 ```bash
 $ pnpm add @cmmv/mcp
@@ -34,10 +34,9 @@ $ pnpm add @cmmv/mcp
 
 ## Configuration
 
-Configure o módulo MCP no arquivo `.env` ou através do `ConfigSchema`:
+Configure the MCP module in your `.cmmv.config.cjs` or using `ConfigSchema`:
 
-```typescript
-// Exemplo de configuração com ConfigSchema
+```ts
 import { ConfigSchema } from '@cmmv/core';
 
 export const MCPConfig: ConfigSchema = {
@@ -60,7 +59,7 @@ export const MCPConfig: ConfigSchema = {
     transport: {
       type: 'string',
       required: true,
-      default: 'sse', // 'sse' ou 'stdio'
+      default: 'sse', // 'sse' or 'stdio'
     },
     jwtSecret: {
       type: 'string',
@@ -83,55 +82,48 @@ export const MCPConfig: ConfigSchema = {
 
 ## Setting Up the Application
 
-No seu arquivo principal, inclua o `MCPModule` e configure sua aplicação:
+In your main file, include the `MCPModule` and configure your application:
 
-```typescript
+```ts
 import { Application, Config } from '@cmmv/core';
 import { DefaultAdapter, DefaultHTTPModule } from '@cmmv/http';
 import { MCPModule } from '@cmmv/mcp';
 import { MCPHandlers } from './mcp-handlers';
 
-Config.assign({
-  server: {
-    port: 8766,
-  },
-});
-
 Application.create({
-  httpAdapter: DefaultAdapter,
-  modules: [MCPModule],
-  providers: [MCPHandlers],
+    httpAdapter: DefaultAdapter,
+    modules: [MCPModule],
+    providers: [MCPHandlers],
 });
 ```
 
 ## Creating MCP Tool Handlers
 
-Use o decorator `@MCPTool` para registrar ferramentas que podem ser usadas pelos LLMs:
+Use the `@MCPTool` decorator to register tools callable by LLMs:
 
-```typescript
+```ts
 import { MCPTool, z } from '@cmmv/mcp';
 
 export class MCPHandlers {
-  @MCPTool('greet', {
-    name: z.string(),
-    age: z.number(),
-  })
-  public async greet({ name, age }: { name: string; age: number }) {
-    return {
-      content: `Hello ${name}, you are ${age} years old`,
-    };
-  }
+    @MCPTool('greet', {
+        name: z.string(),
+        age: z.number(),
+    })
+    public async greet({ name, age }: { name: string; age: number }) {
+        return {
+            content: `Hello \${name}, you are \${age} years old`,
+        };
+    }
 }
 ```
 
 ## Using the MCP Client
 
-O cliente MCP pode se conectar ao seu servidor usando o endpoint SSE:
+The MCP client can connect to your server using the SSE endpoint:
 
 ```bash
-# Usando curl para teste
-curl -X POST http://localhost:8765/messages \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:8765/messages \\
+  -H "Content-Type: application/json" \\
   -d '{"type":"tool_call","name":"greet","arguments":{"name":"John","age":30}}'
 ```
 
@@ -139,32 +131,29 @@ curl -X POST http://localhost:8765/messages \
 
 ### `@MCPTool(name: string, schema: Record<string, z.ZodSchema>)`
 
-Registra um método como uma ferramenta MCP com nome e schema de validação.
+Registers a method as an MCP tool with a name and validation schema.
 
 ## Best Practices
 
-* **Define Schemas Clearly**: Use Zod schemas para definir claramente os parâmetros esperados por cada ferramenta.
-* **Provide Meaningful Responses**: Retorne respostas estruturadas que sejam úteis para o LLM.
-* **Handle Errors Gracefully**: Implemente tratamento de erros robusto em seus handlers.
-* **Security First**: Considere autenticação JWT para endpoints públicos.
-* **Performance**: Implemente timeout e mantenha os handlers leves e rápidos.
+* **Define Schemas Clearly**: Use Zod schemas to clearly define parameters for each tool.
+* **Provide Meaningful Responses**: Return structured and helpful responses for LLMs.
+* **Handle Errors Gracefully**: Implement robust error handling in your handlers.
+* **Security First**: Consider using JWT for public endpoints.
+* **Performance**: Use timeouts and keep handlers lightweight and fast.
 
-## Exemplo de Transporte SSE Completo
+## Full SSE Transport Example
 
-Para usar o transporte SSE na produção, configure o servidor com um código semelhante a:
+To use SSE transport in production, configure your server like:
 
-```typescript
+```ts
 app.get("/sse", async (req, res) => {
-    // Configure headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    
-    // Create transport
+
     const transport = new SSEServerTransport("/messages", res);
     await mcpServer.connect(transport);
-    
-    // Handle disconnection
+
     req.on('close', () => {
         console.log("Client disconnected");
     });
@@ -177,4 +166,5 @@ app.post("/messages", async (req, res) => {
 });
 ```
 
-O módulo `@cmmv/mcp` oferece uma maneira padronizada e robusta de integrar capacidades de LLM em suas aplicações CMMV, permitindo que você estenda facilmente sua aplicação com interações baseadas em IA.
+The `@cmmv/mcp` module offers a standardized and robust way to integrate LLM capabilities into your CMMV applications, making it easy to extend your system with AI-driven interactions.
+
