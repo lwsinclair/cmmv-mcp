@@ -11,9 +11,7 @@ module.exports = [
             parser: tsparser,
             parserOptions: {
                 ecmaVersion: 2015,
-                project: "./tsconfig.json",
-                tsconfigRootDir: __dirname,
-                sourceType: "module"
+                project: "./tsconfig.json"
             },
             globals: {
                 ...globals.node,
@@ -22,8 +20,7 @@ module.exports = [
         files: ["src/**/*.ts", "apps/**/*.ts", "libs/**/*.ts", "test/**/*.ts"],
         ignores: ["node_modules", "dist", "build", ".generated", "eslint.config.js"],
         plugins: {
-            "@typescript-eslint": tseslint,
-            prettier
+            "@typescript-eslint": tseslint
         },
         rules: {
             ...tseslint.configs.recommended.rules,
@@ -32,7 +29,10 @@ module.exports = [
             "@typescript-eslint/explicit-function-return-type": "off",
             "@typescript-eslint/explicit-module-boundary-types": "off",
             "@typescript-eslint/no-explicit-any": "off",
-            "@typescript-eslint/no-unused-vars": "off"
+            "@typescript-eslint/no-unused-vars": "off",
+            "@typescript-eslint/no-empty-object-type": "off",
+            "@typescript-eslint/no-unsafe-function-type": "off",
+            "@typescript-eslint/no-wrapper-object-types": "off"
         },
         settings: {
             env: {

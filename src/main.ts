@@ -1,9 +1,7 @@
-import { Module } from '@cmmv/core';
+export * from './mcp.config';
+export * from './mcp.decorator';
+export * from './mcp.module';
+export * from './mcp.registry';
+export * from './mcp.service';
 
-import { ModuleConfig } from './module.config';
-import { ModuleService } from './module.service';
-
-export const CmmvModule = new Module('module', {
-    configs: [ModuleConfig],
-    providers: [ModuleService],
-});
+export { z } from 'zod';
