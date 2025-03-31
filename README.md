@@ -140,31 +140,3 @@ Registers a method as an MCP tool with a name and validation schema.
 * **Handle Errors Gracefully**: Implement robust error handling in your handlers.
 * **Security First**: Consider using JWT for public endpoints.
 * **Performance**: Use timeouts and keep handlers lightweight and fast.
-
-## Full SSE Transport Example
-
-To use SSE transport in production, configure your server like:
-
-```ts
-app.get("/sse", async (req, res) => {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    const transport = new SSEServerTransport("/messages", res);
-    await mcpServer.connect(transport);
-
-    req.on('close', () => {
-        console.log("Client disconnected");
-    });
-});
-
-app.post("/messages", async (req, res) => {
-    if (transport instanceof SSEServerTransport) {
-        await transport.handlePostMessage(req, res);
-    }
-});
-```
-
-The `@cmmv/mcp` module offers a standardized and robust way to integrate LLM capabilities into your CMMV applications, making it easy to extend your system with AI-driven interactions.
-
